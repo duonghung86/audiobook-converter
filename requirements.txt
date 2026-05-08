@@ -2,3 +2,4 @@ beautifulsoup4
 requests
 ebooklib
 edge-tts
+eyed3

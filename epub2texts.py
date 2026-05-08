@@ -102,7 +102,7 @@ def extract_chapters(book, text_path):
     items = {item.get_id(): item for item in book.get_items()}
     non_chapter_keywords = tuple(['the author gratefully acknowledges','contents','about the author',
                               "copyright",'dear reader', 'revision history','table of contents',
-                              'books by the same author','book'])
+                              'books by the same author','book','revision history'])
     # Remove existing .txt files in text_path
     for f in os.listdir(text_path):
         if f.lower().endswith('.txt'):
@@ -118,7 +118,8 @@ def extract_chapters(book, text_path):
             if (item.get_type() == ebooklib.ITEM_DOCUMENT)&(not item_id.startswith("ded")):
                 soup = BeautifulSoup(item.get_content(), "html.parser")
                 text = soup.get_text().strip()
-                if len(text)==0:
+                # print(text[:100])
+                if len(text)<100:
                     print(f"The content in {item_id} is empty")
                     continue
                 if text[:50].lower().startswith(non_chapter_keywords):
@@ -127,9 +128,9 @@ def extract_chapters(book, text_path):
                 print(f"=== Chapter {chapter_id} ===")
                 if not text[:20].lower().startswith('chapter'):
                     text = f"Chapter {chapter_id} \n\n" + text.strip()
-                print(text[:50])
+                print(text[:100])
                 full_text_path = os.path.join(text_path, f"ch{chapter_id:03d}.txt")
-                with open(full_text_path, 'w') as f:
+                with open(full_text_path, 'w', encoding='utf-8') as f:
                     f.write(text)
                 print(f"Full text saved to: {full_text_path}")
                 chapter_id += 1

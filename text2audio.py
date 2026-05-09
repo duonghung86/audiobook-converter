@@ -124,27 +124,31 @@ def chapter2audio(kokoro_model, chapter_file, skip_if_exists=True):
     output_mp3_path = os.path.join(output_dir, f"{base_name}.mp3")
     if skip_if_exists and os.path.exists(output_mp3_path):
         print(f"Skipping {chapter_file} as {output_mp3_path} already exists.")
-        return
-    chapter_text = read_text_file(chapter_file)
-    # Split into logical paragraphs.
-    raw_paragraphs = re.split(r'\n\n', chapter_text)
-    paragraphs = [p.strip() for p in raw_paragraphs if p.strip()]
-    print(f"Chapter has {len(paragraphs)} paragraphs")
-    combined_audio = AudioSegment.empty()
-    start=time()
-    for j,p in enumerate(paragraphs):
-        print(j,len(p.split()),len(p))
-        try:
-            p_audio = longtext2audio(kokoro_model,p)
-            combined_audio += p_audio
-        except Exception as e:
-            print(f"Error occurred while processing paragraph {j}: {e}")
-            print(p)
-            return
+    else:
+        chapter_text = read_text_file(chapter_file)
+        # Split into logical paragraphs.
+        raw_paragraphs = re.split(r'\n\n', chapter_text)
+        paragraphs = [p.strip() for p in raw_paragraphs if p.strip()]
+        print(f"Chapter has {len(paragraphs)} paragraphs")
+        combined_audio = AudioSegment.empty()
+        start=time()
+        for j,p in enumerate(paragraphs):
+            print(j,len(p.split()),len(p))
+            try:
+                p_audio = longtext2audio(kokoro_model,p)
+                combined_audio += p_audio
+            except Exception as e:
+                print(f"Error occurred while processing paragraph {j}: {e}")
+                print(p)
+                return
 
-    end=time()
-    print(f"Time taken to process chapter: {end - start:.2f} seconds")
-    print("Converting rate: {:.2f} characters/second".format(len(chapter_text) / (end - start)))
+        end=time()
+        print(f"Time taken to process chapter: {end - start:.2f} seconds")
+        print("Converting rate: {:.2f} characters/second".format(len(chapter_text) / (end - start)))
+
+            # Export the merged audio with high quality VBR mp3
+        print(f"Saving merged audio to: {output_mp3_path}")
+        combined_audio.export(output_mp3_path, format="mp3", parameters=["-q:a", "0"])
 
     # Load metadata and cover path
     book_folder = os.path.dirname(chapter_file)
@@ -152,11 +156,7 @@ def chapter2audio(kokoro_model, chapter_file, skip_if_exists=True):
     cover_path = os.path.join(book_folder, 'cover.jpg')
     with open(metadata_path, 'r', encoding='utf-8') as f:
         metadata = json.load(f)
-
-    # Export the merged audio with high quality VBR mp3
-    print(f"Saving merged audio to: {output_mp3_path}")
-    combined_audio.export(output_mp3_path, format="mp3", parameters=["-q:a", "0"])
-
+    
     # Embed metadata and cover art
     audiofile = eyed3.load(output_mp3_path)
     if audiofile.tag is None:

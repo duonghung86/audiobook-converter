@@ -163,7 +163,11 @@ def chapter2audio(kokoro_model, chapter_file, skip_if_exists=True):
         audiofile.initTag()
     chapter_num = int(base_name[2:])  # e.g., ch001 -> 1
     audiofile.tag.title = f"Chapter {chapter_num}"
-    audiofile.tag.artist = ', '.join(metadata.get('authors', []))
+    authors = metadata.get('authors')
+    if isinstance(authors, list):
+        audiofile.tag.artist = ', '.join(authors)
+    else:
+        audiofile.tag.artist = authors
     audiofile.tag.album = metadata.get('title', '')
     audiofile.tag.publisher = metadata.get('publisher', '')
     if 'publishedDate' in metadata and metadata['publishedDate']:
